@@ -1,29 +1,40 @@
 import pickle as pickle
+from unittest import result
 import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import Lasso
+from sklearn.preprocessing import PolynomialFeatures
+
 
 # Page Title
-st.title('Fracture Mechanices')
+st.title('Fracture Mechanics')
 
 # Loading Model
-model = pickle.load(open('final_model.pkl', 'rb'))
+model = pickle.load(open('first_model.pkl', 'rb'))
 
-# loading Features
-features_dict = pickle.load(open('feature.pkl', 'rb'))
+# loading scaler
+scalerX = pickle.load(open('scalerX.pkl', 'rb'))
+scalerY = pickle.load(open('scalery.pkl', 'rb'))
 
-# selections
-E = st.number_input('Enter the elastic Modulus:')
-F = st.number_input('Enter Compressive:')
-Pmax = st.number_input('Enter peak load:')
-final_crack = st.number_input('Enter crack length:')
 
-if st.button('Predict CTOD'):
+# data input
+E = st.number_input('Enter the Elastic Modulus:')
+F = st.number_input('Enter the Compressive Strength:')
+Pmax = st.number_input('Enter Peak Load (KN):')
+final_crack = st.number_input(
+    'Enter crack length (this is the difference between the final and initial crack(mm)):', step=1e-5, format="%.5f")
+
+# make predictions
+if st.button('Predict Result'):
     dataset = [E, F, Pmax, final_crack]
-
-df = pd.DataFrame(dataset)
-CTOD = model.predict(df.T).flatten().tolist()
-
-st.success(
-    f'the CTOD is {CTOD[0]:,.0f}')
+    df = pd.DataFrame(dataset)
+    df = df.T.values
+    polyDF = PolynomialFeatures(
+        2, interaction_only=True).fit_transform(df)
+    scaledDF = scalerX.transform(polyDF)
+    prediction = model.predict(scaledDF)
+    prediction = scalerY.inverse_transform(prediction)
+    Result = prediction.flatten().tolist()
+    st.success(
+        f'the CTOD is **{Result[0]:,.5f}** and the KiSC is **{Result[1]:,.5f}** .')

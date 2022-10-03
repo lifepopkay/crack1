@@ -1,9 +1,8 @@
-import pickle as pickle
-from unittest import result
+import pickle5 as pickle
 import streamlit as st
 import pandas as pd
 import numpy as np
-from sklearn.linear_model import Lasso
+from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 
 
